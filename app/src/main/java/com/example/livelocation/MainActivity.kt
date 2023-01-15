@@ -74,13 +74,14 @@ class MainActivity : AppCompatActivity() {
             val submitField = findViewById<TextView>(R.id.address_text_view)
             val address=geocoder.getFromLocation(it.latitude,it.longitude,1)
             val changeAddress: String=submitField.text.toString()
-            displayNotify(changeAddress)
 
             if(address!=null) {
                 submitField.text= address[0].getAddressLine(0)
                 submitField.setTextSize(1,16.5f)
-                if(submitField.text.toString()!=changeAddress)
+                if(submitField.text.toString()!=changeAddress){
                     Toast.makeText(this,address[0].getAddressLine(0),Toast.LENGTH_LONG).show()
+                    displayNotify(changeAddress)
+            }
             }
         }
     }
