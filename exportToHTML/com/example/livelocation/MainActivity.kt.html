@@ -1,0 +1,135 @@
+<html>
+<head>
+<title>MainActivity.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MainActivity.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com.example.livelocation</span>
+
+<span class="s1">import android.Manifest</span>
+<span class="s1">import android.annotation.SuppressLint</span>
+<span class="s1">import android.app.NotificationChannel</span>
+<span class="s1">import android.app.NotificationManager</span>
+<span class="s1">import android.content.Context</span>
+<span class="s1">import android.content.pm.PackageManager</span>
+<span class="s1">import android.location.Geocoder</span>
+<span class="s1">import androidx.appcompat.app.AppCompatActivity</span>
+<span class="s1">import android.os.Bundle</span>
+<span class="s1">import android.os.Handler</span>
+<span class="s1">import android.widget.Button</span>
+<span class="s1">import android.widget.TextView</span>
+<span class="s1">import android.widget.Toast</span>
+<span class="s1">import androidx.core.app.ActivityCompat</span>
+<span class="s1">import androidx.core.app.NotificationCompat</span>
+<span class="s1">import androidx.core.app.NotificationManagerCompat</span>
+<span class="s1">import com.google.android.gms.location.FusedLocationProviderClient</span>
+<span class="s1">import com.google.android.gms.location.LocationServices</span>
+<span class="s1">import java.util.Locale</span>
+
+<span class="s1">@Suppress(</span><span class="s2">&quot;DEPRECATION&quot;</span><span class="s1">)</span>
+<span class="s0">class </span><span class="s1">MainActivity : AppCompatActivity() {</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">channelID=</span><span class="s2">&quot;01&quot;</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">notificationID= </span><span class="s3">10</span>
+
+    <span class="s1">private lateinit </span><span class="s0">var </span><span class="s1">fusedLocationProviderClient: FusedLocationProviderClient</span>
+    <span class="s1">private lateinit </span><span class="s0">var </span><span class="s1">geocoder: Geocoder</span>
+
+    <span class="s1">override </span><span class="s0">fun </span><span class="s1">onCreate(savedInstanceState: Bundle?) {</span>
+        <span class="s0">super</span><span class="s1">.onCreate(savedInstanceState)</span>
+        <span class="s1">setContentView(R.layout.activity_main)</span>
+
+        <span class="s1">fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(</span><span class="s0">this</span><span class="s1">)</span>
+        <span class="s1">geocoder=Geocoder(</span><span class="s0">this,</span><span class="s1">Locale.getDefault())</span>
+
+        <span class="s0">val </span><span class="s1">btnLocation = findViewById&lt;Button&gt;(R.id.button_Location)</span>
+
+        <span class="s1">notificationChannel()</span>
+
+        <span class="s1">btnLocation.setOnClickListener{</span>
+            <span class="s1">findLocation()</span>
+            <span class="s1">Handler().postDelayed({</span>
+                <span class="s1">btnLocation.performClick()</span>
+
+            <span class="s1">}</span><span class="s0">, </span><span class="s3">5000</span><span class="s1">)</span>
+
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@SuppressLint(</span><span class="s2">&quot;SuspiciousIndentation&quot;</span><span class="s1">)</span>
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">findLocation() {</span>
+        <span class="s1">notificationChannel()</span>
+        <span class="s0">if </span><span class="s1">(ActivityCompat.checkSelfPermission(</span>
+                <span class="s0">this,</span>
+                <span class="s1">Manifest.permission.ACCESS_FINE_LOCATION</span>
+            <span class="s1">) != (PackageManager.PERMISSION_GRANTED) &amp;&amp;</span>
+            <span class="s1">ActivityCompat.checkSelfPermission(</span>
+                <span class="s0">this,</span>
+                <span class="s1">Manifest.permission.ACCESS_COARSE_LOCATION</span>
+            <span class="s1">) != PackageManager.PERMISSION_GRANTED</span>
+        <span class="s1">) {</span>
+            <span class="s1">ActivityCompat.requestPermissions(</span>
+                <span class="s0">this,</span>
+                <span class="s1">arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)</span><span class="s0">,</span>
+                <span class="s3">1</span>
+            <span class="s1">)</span>
+            <span class="s0">return</span>
+        <span class="s1">}</span>
+        <span class="s0">val </span><span class="s1">location = fusedLocationProviderClient.lastLocation</span>
+
+        <span class="s1">location.addOnSuccessListener {</span>
+            <span class="s0">val </span><span class="s1">submitField = findViewById&lt;TextView&gt;(R.id.address_text_view)</span>
+            <span class="s0">val </span><span class="s1">address=geocoder.getFromLocation(it.latitude</span><span class="s0">,</span><span class="s1">it.longitude</span><span class="s0">,</span><span class="s3">1</span><span class="s1">)</span>
+            <span class="s0">val </span><span class="s1">changeAddress: String=submitField.text.toString()</span>
+            <span class="s1">displayNotify(changeAddress)</span>
+
+            <span class="s0">if</span><span class="s1">(address!=</span><span class="s0">null</span><span class="s1">) {</span>
+                <span class="s1">submitField.text= address[</span><span class="s3">0</span><span class="s1">].getAddressLine(</span><span class="s3">0</span><span class="s1">)</span>
+                <span class="s1">submitField.setTextSize(</span><span class="s3">1</span><span class="s0">,</span><span class="s3">16.5f</span><span class="s1">)</span>
+                <span class="s0">if</span><span class="s1">(submitField.text.toString()!=changeAddress)</span>
+                    <span class="s1">Toast.makeText(</span><span class="s0">this,</span><span class="s1">address[</span><span class="s3">0</span><span class="s1">].getAddressLine(</span><span class="s3">0</span><span class="s1">)</span><span class="s0">,</span><span class="s1">Toast.LENGTH_LONG).show()</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">notificationChannel() {</span>
+        <span class="s0">val </span><span class="s1">name = </span><span class="s2">&quot;Live Location&quot;</span>
+        <span class="s0">val </span><span class="s1">descriptionText= </span><span class="s2">&quot;Address value&quot;</span>
+        <span class="s0">val </span><span class="s1">importance = NotificationManager.IMPORTANCE_HIGH</span>
+        <span class="s0">val </span><span class="s1">channel = NotificationChannel(channelID</span><span class="s0">,</span><span class="s1">name</span><span class="s0">,</span><span class="s1">importance).apply {</span>
+            <span class="s1">description = descriptionText</span>
+        <span class="s1">}</span>
+        <span class="s4">// Register the channel with the system</span>
+        <span class="s0">val </span><span class="s1">notificationManager: NotificationManager =</span>
+            <span class="s1">getSystemService(Context.NOTIFICATION_SERVICE) </span><span class="s0">as </span><span class="s1">NotificationManager</span>
+        <span class="s1">notificationManager.createNotificationChannel(channel)</span>
+    <span class="s1">}</span>
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">displayNotify(text: String){</span>
+        <span class="s0">val </span><span class="s1">builder=NotificationCompat.Builder(</span><span class="s0">this,</span><span class="s1">channelID)</span>
+            <span class="s1">.setSmallIcon(R.drawable.ic_launcher_foreground)</span>
+            <span class="s1">.setContentTitle(</span><span class="s2">&quot;Live Location&quot;</span><span class="s1">)</span>
+            <span class="s1">.setContentText(text)</span>
+            <span class="s1">.setStyle(NotificationCompat.BigTextStyle().bigText(text))</span>
+            <span class="s1">.setPriority(NotificationCompat.PRIORITY_HIGH)</span>
+            <span class="s1">.setAutoCancel(</span><span class="s0">true</span><span class="s1">)</span>
+            <span class="s1">.setShowWhen(</span><span class="s0">true</span><span class="s1">)</span>
+
+        <span class="s1">with(NotificationManagerCompat.from(</span><span class="s0">this</span><span class="s1">)){</span>
+            <span class="s1">notify(notificationID</span><span class="s0">,</span><span class="s1">builder.build())</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">}</span>
+</pre>
+</body>
+</html>
